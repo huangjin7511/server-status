@@ -1,7 +1,7 @@
 name: 服务恢复关闭Issue
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       issue_title:
         description: "请输入已存在的 Issue 标题"
