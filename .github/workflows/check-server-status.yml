@@ -160,12 +160,6 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           force_with_lease: true
-      - name: delete-workflow
-        uses: Mattraks/delete-workflow-runs@main
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          retain_days: 0
-          keep_minimum_runs: 0
 
   keepalive-workflow:
     name: keepalive
