@@ -48,7 +48,7 @@ jobs:
             issue_title="🛑 $1-$2-$3-$4 离线了"
             
             current_date=$(date '+%Y年%m月%d日 %H:%M:%S')
-            RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
               https://api.github.com/repos/${{ github.repository }}/issues?state=open)
             ISSUE_EXISTS=$(echo "$RESPONSE" | jq -r --arg TITLE "$issue_title" '.[] | select(.title == $TITLE) | .title')
@@ -59,7 +59,7 @@ jobs:
             fi
             # 调用 GitHub API 创建 Issue
             curl -X POST \
-              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
               https://api.github.com/repos/${{ github.repository }}/issues \
               -d "{\"title\": \"${issue_title}\", \"body\": \"### ${current_date} \\n\\n 🛑 $1  $2  $3  $4  离线了😫\"}"
@@ -69,7 +69,7 @@ jobs:
             issue_title="🛑 $1-$2-$3-$4 离线了"
             issue_body="### ${current_date} \\n\\n 🛑 $1  $2  $3  $4 已经恢复正常运行了✅"
             # 获取所有 Open 状态的 Issue
-            RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
               https://api.github.com/repos/${{ github.repository }}/issues?state=open)
 
@@ -83,7 +83,7 @@ jobs:
             fi
             # 回复指定内容到 Issue
             curl -X POST \
-              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
               https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_ID}/comments \
               -d "{\"body\": \"### ${current_date} \\n\\n 🛑 $1  $2  $3  $4 已经恢复正常运行了✅\"}"
