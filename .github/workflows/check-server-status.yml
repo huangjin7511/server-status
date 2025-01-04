@@ -18,6 +18,7 @@ permissions:
   contents: write
   pull-requests: write
   actions: write
+  issues: write
   
 jobs:
   build:
@@ -41,6 +42,61 @@ jobs:
         id: check-server-status
         run: |
           set +e
+
+          create_issue() {
+            #检查Issue是否已存在
+            issue_title="🛑 $1-$2-$3-$4 离线了"
+            \"body\": \"### ${current_date} \\n\\n 🛑 ${name}  ${protocol}  ${address}  ${port} 离线了😫\"}"
+            
+            current_date=$(date '+%Y年%m月%d日 %H:%M:%S')
+            RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{ github.repository }}/issues?state=open)
+            ISSUE_EXISTS=$(echo "$RESPONSE" | jq -r --arg TITLE "$issue_title" '.[] | select(.title == $TITLE) | .title')
+            if [ -n "$ISSUE_EXISTS" ]; then
+              return
+            else
+              echo "未找到相同的 Issue，创建issue通知。"
+            fi
+            # 调用 GitHub API 创建 Issue
+            curl -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{ github.repository }}/issues \
+              -d "{\"title\": \"${issue_title}\", \"body\": \"### ${current_date} \\n\\n 🛑 $1  $2  $3  $4  离线了😫\"}"
+            echo -e "已成功创建新的 Issue: $issue_title  \n\n### ${current_date} \n\n 🛑 $1  $2  $3  $4  离线了😫"
+          }
+          close_issue() {
+            issue_title="🛑 $1-$2-$3-$4 离线了"
+            issue_body="### ${current_date} \\n\\n 🛑 $1  $2  $3  $4 已经恢复正常运行了✅"
+            # 获取所有 Open 状态的 Issue
+            RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{ github.repository }}/issues?state=open)
+
+            # 查找相同标题的 Issue ID
+            ISSUE_ID=$(echo "$RESPONSE" | jq -r --arg TITLE "$issue_title" '.[] | select(.title == $TITLE) | .number')
+            current_date=$(date '+%Y年%m月%d日 %H:%M:%S')
+            if [ -n "$ISSUE_ID" ]; then
+                echo "找到${issue_title}的 Issue ID: $ISSUE_ID。"
+            else
+                return
+            fi
+            # 回复指定内容到 Issue
+            curl -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_ID}/comments \
+              -d "{\"body\": \"### ${current_date} \\n\\n 🛑 $1  $2  $3  $4 已经恢复正常运行了✅\"}"
+            
+            # 调用 GitHub API 关闭 Issue
+            curl -X PATCH \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_ID} \
+              -d "{\"state\": \"closed\"}"
+            echo "已关闭 【${issue_title}】 Issue ID: $ISSUE_ID。"
+          }
           rm README.md && touch README.md
           
           echo "# 服务状态" | tee -a README.md
@@ -117,25 +173,15 @@ jobs:
           #emoji表情占4个字节
           total_count=$((total_count / 4))
           percentage=$((green_count * 100 / total_count))
-          current_date=$(date '+%Y年%m月%d日 %H:%M:%S')
+          
           if [[ "$status" = "正常✅" || "$status" = "未知⚠️" ]] ; then
             echo "|$name|$protocol|$address|$port|$region|$ipv|$status|[${history_status}]($history_file) $percentage%|" |tee -a README.md >/dev/null 2>&1
             #关闭issue
-            json_data="{\"ref\": \"${{ github.ref }}\", \"inputs\": {\"issue_title\": \"🛑 ${name}-${protocol}-${address}-${port} 离线了\", \"reply_body\": \"### ${current_date} \\n\\n 🛑 ${name}  ${protocol}  ${address}  ${port} 已经恢复正常运行了✅\"}}"
-            curl -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              -Lk https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/Close-Issue.yml/dispatches \
-              -d "$json_data"
+            close_issue "${name}" "${protocol}" "${address}" "${port}"
           else 
             echo "|$name|<span style="color:red">$protocol</span>|<span style="color:red">$address</span>|<span style="color:red">$port</span>|<span style="color:red">$region</span>|<span style="color:red">$ipv</span>|<span style="color:red">离线</span>❌|[${history_status}]($history_file) <span style="color:red">$percentage%</span>|" | tee -a README.md >/dev/null 2>&1
             #创建issue通知
-            json_data="{\"ref\": \"${{ github.ref }}\", \"inputs\": {\"issue_title\": \"🛑 ${name}-${protocol}-${address}-${port} 离线了\", \"issue_body\": \"### ${current_date} \\n\\n 🛑 ${name}  ${protocol}  ${address}  ${port} 离线了😫\"}}"
-            curl -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              -Lk https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/Create-Issue.yml/dispatches \
-              -d "$json_data"
+            create_issue "${name}" "${protocol}" "${address}" "${port}"
           fi
           done
     
