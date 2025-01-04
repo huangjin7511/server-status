@@ -1,0 +1,73 @@
+name: 服务恢复关闭Issue
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_title:
+        description: "请输入已存在的 Issue 标题"
+        required: true
+        type: string
+      reply_body:
+        description: "请输入关闭前回复的内容"
+        required: false
+        type: string
+
+permissions:
+  issues: write 
+
+jobs:
+  update-and-close-issue:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 检查Issue是否存在 
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      id: check_issue
+      run: |
+        # 提取输入的标题
+        ISSUE_TITLE="${{ github.event.inputs.issue_title }}"
+        
+        # 获取所有 Open 状态的 Issue
+        RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/issues?state=open)
+
+        # 查找相同标题的 Issue ID
+        ISSUE_ID=$(echo "$RESPONSE" | jq -r --arg TITLE "$ISSUE_TITLE" '.[] | select(.title == $TITLE) | .number')
+
+        if [ -n "$ISSUE_ID" ]; then
+          echo "找到相关的 Issue ID: $ISSUE_ID。"
+          echo "issue_id=$ISSUE_ID" >> $GITHUB_ENV
+          echo "issue_found=true" >> $GITHUB_ENV
+        else
+          echo "未找到相关的 Issue，跳过后续操作。"
+          echo "issue_found=false" >> $GITHUB_ENV
+        fi
+
+    - name: 回复并关闭 Issue
+      if: env.issue_found == 'true'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ISSUE_ID: ${{ env.issue_id }}
+        REPLY_BODY: ${{ github.event.inputs.reply_body }}
+      run: |
+        if [[ -n "$REPLY_BODY" ]] ; then
+        # 回复指定内容到 Issue
+        curl -X POST \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_ID}/comments \
+          -d "{\"body\": \"${REPLY_BODY}\"}"
+
+        echo "已回复内容到 Issue ID: $ISSUE_ID。"
+        fi
+
+        # 关闭 Issue
+        curl -X PATCH \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_ID} \
+          -d "{\"state\": \"closed\"}"
+
+        echo "已关闭 【${{ github.event.inputs.issue_title }}】 Issue ID: $ISSUE_ID。"
