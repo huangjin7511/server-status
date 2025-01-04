@@ -122,7 +122,7 @@ jobs:
             echo "|$name|$protocol|$address|$port|$region|$ipv|$status|[${history_status}]($history_file) $percentage%|" |tee -a README.md >/dev/null 2>&1
             #关闭issue
             current_date=$(date '+%Y年%m月%d日 %H:%M:%S')
-            json_data="{\"ref\": \"${{ github.ref }}\", \"inputs\": {\"issue_title\": \"🛑 ${protocol}-${address}-${port} 离线了\", \"issue_body\": \"### ${current_date} \\n\\n 🛑 ${name}  ${protocol}  ${address}  ${port} 已经恢复正常运行了✅\"}}"
+            json_data="{\"ref\": \"${{ github.ref }}\", \"inputs\": {\"issue_title\": \"🛑 ${protocol}-${address}-${port} 离线了\", \"reply_body\": \"### ${current_date} \\n\\n 🛑 ${name}  ${protocol}  ${address}  ${port} 已经恢复正常运行了✅\"}}"
             curl -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
