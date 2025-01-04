@@ -1,0 +1,62 @@
+name: 创建Issue服务离线通知
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_title:
+        description: "请输入发表 Issue 的标题"
+        required: true
+        type: string
+      issue_body:
+        description: "请输入发表 Issue 的内容"
+        required: true
+        type: string
+        
+permissions:
+  issues: write 
+jobs:
+  check-and-create-issue:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 检查Issue是否已存在
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      id: check_issue
+      run: |
+        # 提取输入的标题
+        ISSUE_TITLE="${{ github.event.inputs.issue_title }}"
+        
+        # 获取所有 Open 状态的 Issue
+        RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/issues?state=open)
+
+        # 检查是否有相同标题的 Issue
+        ISSUE_EXISTS=$(echo "$RESPONSE" | jq -r --arg TITLE "$ISSUE_TITLE" '.[] | select(.title == $TITLE) | .title')
+
+        if [ -n "$ISSUE_EXISTS" ]; then
+          echo "已存在相同的 Issue: $ISSUE_EXISTS，跳过创建。"
+          echo "issue_exists=true" >> $GITHUB_ENV
+        else
+          echo "未找到相同的 Issue，继续创建。"
+          echo "issue_exists=false" >> $GITHUB_ENV
+        fi
+
+    - name: 创建新的 Issue
+      if: env.issue_exists == 'false'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # 提取输入的标题和内容
+        ISSUE_TITLE="${{ github.event.inputs.issue_title }}"
+        ISSUE_BODY="${{ github.event.inputs.issue_body }}"
+
+        # 调用 GitHub API 创建 Issue
+        curl -X POST \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/issues \
+          -d "{\"title\": \"${ISSUE_TITLE}\", \"body\": \"${ISSUE_BODY}\"}"
+
+        echo "已成功创建新的 Issue: $ISSUE_TITLE。"
