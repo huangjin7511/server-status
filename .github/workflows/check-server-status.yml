@@ -46,7 +46,6 @@ jobs:
           create_issue() {
             #检查Issue是否已存在
             issue_title="🛑 $1-$2-$3-$4 离线了"
-            \"body\": \"### ${current_date} \\n\\n 🛑 ${name}  ${protocol}  ${address}  ${port} 离线了😫\"}"
             
             current_date=$(date '+%Y年%m月%d日 %H:%M:%S')
             RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
