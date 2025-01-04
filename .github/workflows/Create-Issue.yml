@@ -57,6 +57,6 @@ jobs:
           -H "Authorization: token $GITHUB_TOKEN" \
           -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/${{ github.repository }}/issues \
-          -d "{\"title\": \"${ISSUE_TITLE}\", \"body\": \"${ISSUE_BODY}\"}"
+          -d "{\"title\": \"${ISSUE_TITLE}\", \"body\": \"$(echo -n "$ISSUE_BODY" | jq -sRr @json)\"}"
 
         echo -e "已成功创建新的 Issue: $ISSUE_TITLE  \n\n${ISSUE_BODY}"
