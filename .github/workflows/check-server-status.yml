@@ -103,7 +103,7 @@ jobs:
 
           # 更新历史记录文件
           [ ! -d "history" ] && mkdir -p history
-          history_file="history/${protocol}-${address}-${port}.md"
+          history_file="history/${protocol}-${address}-${port}.txt"
           [ ! -f "$history_file" ] && touch "$history_file"
           echo "$(date '+%Y年%m月%d日 %H:%M:%S')： $status" >> "$history_file"
           tail -n 10 "$history_file" > "$history_file.temp" && mv "$history_file.temp" "$history_file"
