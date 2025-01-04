@@ -111,8 +111,11 @@ jobs:
           # 生成历史状态显示
           history_status=$(tail -n 10 "$history_file" | awk '{if($3=="正常✅") printf "🟩"; else if($3=="未知⚠️") printf "🟨"; else printf "🟥"}')
           green_count=$(echo "$history_status" | grep -o "🟩" | wc -l)
-          total_count=$(echo "$history_status" | wc -m)
-          total_count=$((total_count - 1)) # 去除换行符
+          #total_count=$(echo "$history_status" | wc -m)
+          #total_count=$((total_count - 1)) # 去除换行符
+          total_count=$(echo "$history_status" | wc -c)
+          #emoji表情占4个字节
+          total_count=$((total_count / 4))
           percentage=$((green_count * 100 / total_count))
           
           if [[ "$status" = "正常✅" || "$status" = "未知⚠️" ]] ; then
