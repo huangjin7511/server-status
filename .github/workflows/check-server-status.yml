@@ -67,7 +67,6 @@ jobs:
           }
           close_issue() {
             issue_title="🛑 $1-$2-$3-$4 离线了"
-            issue_body="### ${current_date} \\n\\n 🛑 $1  $2  $3  $4 已经恢复正常运行了✅"
             # 获取所有 Open 状态的 Issue
             RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
