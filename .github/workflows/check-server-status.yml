@@ -117,11 +117,10 @@ jobs:
           #emoji表情占4个字节
           total_count=$((total_count / 4))
           percentage=$((green_count * 100 / total_count))
-          
+          current_date=$(date '+%Y年%m月%d日 %H:%M:%S')
           if [[ "$status" = "正常✅" || "$status" = "未知⚠️" ]] ; then
             echo "|$name|$protocol|$address|$port|$region|$ipv|$status|[${history_status}]($history_file) $percentage%|" |tee -a README.md >/dev/null 2>&1
             #关闭issue
-            current_date=$(date '+%Y年%m月%d日 %H:%M:%S')
             json_data="{\"ref\": \"${{ github.ref }}\", \"inputs\": {\"issue_title\": \"🛑 ${protocol}-${address}-${port} 离线了\", \"reply_body\": \"### ${current_date} \\n\\n 🛑 ${name}  ${protocol}  ${address}  ${port} 已经恢复正常运行了✅\"}}"
             curl -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
@@ -131,12 +130,12 @@ jobs:
           else 
             echo "|$name|<span style="color:red">$protocol</span>|<span style="color:red">$address</span>|<span style="color:red">$port</span>|<span style="color:red">$region</span>|<span style="color:red">$ipv</span>|<span style="color:red">离线</span>❌|[${history_status}]($history_file) <span style="color:red">$percentage%</span>|" | tee -a README.md >/dev/null 2>&1
             #创建issue通知
-            Create_Issue=$(curl -X POST -H 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' -H 'Accept: application/vnd.github.v3+json' -Lk https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/Create-Issue.yml/dispatches -d '{"ref":"${{ github.ref }}", "inputs": {"issue_title": "🛑 ${protocol}-${address}-${port} 离线了", "issue_body": "### $(date '+%Y年%m月%d日 %H:%M:%S') \n\n 🛑 ${name}  ${protocol}  ${address}  ${port} 离线了😫"}}')
-            if [ "$response" -eq 204 ]; then
-              echo "请求成功，创建issue通知工作流已触发！"
-            else
-              echo "请求失败，HTTP 状态码: $response  详细信息：$Create_Issue"
-            fi
+            json_data="{\"ref\": \"${{ github.ref }}\", \"inputs\": {\"issue_title\": \"🛑 ${protocol}-${address}-${port} 离线了\", \"reply_body\": \"### ${current_date} \\n\\n 🛑 ${name}  ${protocol}  ${address}  ${port} 离线了😫\"}}"
+            curl -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -Lk https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/Create-Issue.yml/dispatches \
+              -d "$json_data"
           fi
           done
     
@@ -161,6 +160,12 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           force_with_lease: true
+      - name: delete-workflow
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          retain_days: 0
+          keep_minimum_runs: 0
 
   keepalive-workflow:
     name: keepalive
