@@ -86,7 +86,7 @@ jobs:
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
               https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_ID}/comments \
-              -d "{\"body\": \"### ${current_date} \\n\\n 🛑 $1  $2  $3  $4 已经恢复正常运行了✅\"}"
+              -d "{\"body\": \"### ${current_date} \\n\\n 🟢 $1  $2  $3  $4 已经恢复正常运行了✅\"}"
             
             # 调用 GitHub API 关闭 Issue
             curl -X PATCH \
