@@ -121,7 +121,7 @@ jobs:
           if [[ "$status" = "正常✅" || "$status" = "未知⚠️" ]] ; then
             echo "|$name|$protocol|$address|$port|$region|$ipv|$status|[${history_status}]($history_file) $percentage%|" |tee -a README.md >/dev/null 2>&1
             #关闭issue
-            json_data="{\"ref\": \"${{ github.ref }}\", \"inputs\": {\"issue_title\": \"🛑 ${protocol}-${address}-${port} 离线了\", \"reply_body\": \"### ${current_date} \\n\\n 🛑 ${name}  ${protocol}  ${address}  ${port} 已经恢复正常运行了✅\"}}"
+            json_data="{\"ref\": \"${{ github.ref }}\", \"inputs\": {\"issue_title\": \"🛑 ${name}-${protocol}-${address}-${port} 离线了\", \"reply_body\": \"### ${current_date} \\n\\n 🛑 ${name}  ${protocol}  ${address}  ${port} 已经恢复正常运行了✅\"}}"
             curl -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
@@ -130,7 +130,7 @@ jobs:
           else 
             echo "|$name|<span style="color:red">$protocol</span>|<span style="color:red">$address</span>|<span style="color:red">$port</span>|<span style="color:red">$region</span>|<span style="color:red">$ipv</span>|<span style="color:red">离线</span>❌|[${history_status}]($history_file) <span style="color:red">$percentage%</span>|" | tee -a README.md >/dev/null 2>&1
             #创建issue通知
-            json_data="{\"ref\": \"${{ github.ref }}\", \"inputs\": {\"issue_title\": \"🛑 ${protocol}-${address}-${port} 离线了\", \"issue_body\": \"### ${current_date} \\n\\n 🛑 ${name}  ${protocol}  ${address}  ${port} 离线了😫\"}}"
+            json_data="{\"ref\": \"${{ github.ref }}\", \"inputs\": {\"issue_title\": \"🛑 ${name}-${protocol}-${address}-${port} 离线了\", \"issue_body\": \"### ${current_date} \\n\\n 🛑 ${name}  ${protocol}  ${address}  ${port} 离线了😫\"}}"
             curl -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
