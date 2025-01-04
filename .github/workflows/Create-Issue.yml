@@ -59,4 +59,4 @@ jobs:
           https://api.github.com/repos/${{ github.repository }}/issues \
           -d "{\"title\": \"${ISSUE_TITLE}\", \"body\": \"${ISSUE_BODY}\"}"
 
-        echo "已成功创建新的 Issue: $ISSUE_TITLE。"
+        echo -e "已成功创建新的 Issue: $ISSUE_TITLE  \n\n${ISSUE_BODY}"
