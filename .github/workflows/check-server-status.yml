@@ -102,8 +102,8 @@ jobs:
           fi
 
           # 更新历史记录文件
-          [ ! -d "history/${base_filename}" ] && mkdir -p history/${base_filename}
-          history_file="history/${base_filename}/${protocol}-${address}-${port}.txt"
+          [ ! -d "history" ] && mkdir -p history
+          history_file="history/${protocol}-${address}-${port}.md"
           [ ! -f "$history_file" ] && touch "$history_file"
           echo "$(date '+%Y年%m月%d日 %H:%M:%S')： $status" >> "$history_file"
           tail -n 10 "$history_file" > "$history_file.temp" && mv "$history_file.temp" "$history_file"
