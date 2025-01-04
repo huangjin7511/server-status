@@ -22,9 +22,9 @@ if [ -z "$txt_files" ]; then
   echo -e "# ①服务名称 ②协议 ③服务器地址 ④端口(可留空)  ⑤备注信息(可留空)  ⑥IPV4/IPV6(可留空) \n " | tee -a README.md
   echo "测试名 tcp 120.12.12.12 11010 广东阿里云  ipv4 " | tee -a README.md
   echo -e "\`\`\`\n效果如下:\n" | tee -a README.md
-  echo "|服务名称|协议|服务器地址|端口|备注信息|IPV4/IPV6|**状态**|" |tee -a README.md
-  echo "|--|--|--|--|--|--|--|" |tee -a README.md 
-  echo "|测试名|tcp|120.12.12.12|11010|广东阿里云|ipv4|正常✅|" |tee -a README.md 
+  echo "|服务名称|协议|服务器地址|端口|备注信息|IPV4/IPV6|**状态**|历史状态|" |tee -a README.md
+  echo "|--|--|--|--|--|--|--|--|" |tee -a README.md 
+  echo "|测试名|tcp|120.12.12.12|11010|广东阿里云|ipv4|正常✅|🟩(100%)|" |tee -a README.md 
   exit 1
 fi
 echo -e "<details> <summary>目录</summary>\n" | tee -a README.md >/dev/null 2>&1
@@ -43,8 +43,8 @@ for filename in *.txt; do
   echo -e "> 更新时间：**$(date '+%Y年%m月%d日 %H:%M:%S')**\n" | tee -a README.md >/dev/null 2>&1
   echo "<details> <summary>点击查看</summary>" | tee -a README.md >/dev/null 2>&1
   echo "" | tee -a README.md >/dev/null 2>&1
-  echo "|服务名称|协议|服务器地址|端口|备注信息|IPV4/IPV6|**状态**|" |tee -a README.md >/dev/null 2>&1
-  echo "|--|--|--|--|--|--|--|" |tee -a README.md >/dev/null 2>&1
+  echo "|服务名称|协议|服务器地址|端口|备注信息|IPV4/IPV6|**状态**|历史状态|" |tee -a README.md >/dev/null 2>&1
+  echo "|--|--|--|--|--|--|--|--|" |tee -a README.md >/dev/null 2>&1
 
   # 读取 .txt 文件并遍历每一行
   awk '{print $0}' $filename | while IFS=' ' read -r name protocol address port region ipv; do
@@ -78,21 +78,41 @@ for filename in *.txt; do
               fi
         
               if [[ "$response_code" -eq 200 ]]; then
-                  echo "|$name|$protocol|$address|$port|$region|$ipv|正常✅|" | tee -a README.md >/dev/null 2>&1
+                  status="正常✅"
               else
-                  echo "|$name|<span style="color:red">$protocol</span>|<span style="color:red">$address</span>|<span style="color:red">$port</span>|<span style="color:red">$region</span>|<span style="color:red">$ipv</span>|<span style="color:red">离线</span>❌|" | tee -a README.md >/dev/null 2>&1
+                  status="离线❌"
               fi
           elif [[ "$protocol" == "TCP" || "$protocol" == "tcp" || "$protocol" == "ws" || "$protocol" == "WS" || "$protocol" == "WSS" || "$protocol" == "wss" ]]; then
               # TCP协议
               #如果是嵌入式设备 如路由器 nc是阉割版的 改用 socat 命令 ：socat -v TCP4:"$address:$port,connect-timeout=3" /dev/null &>/dev/null
               nc -v -w 3 -z "$address" "$port" &>/dev/null
               if [[ $? -eq 0 ]]; then
-                  echo "|$name|$protocol|$address|$port|$region|$ipv|正常✅|" | tee -a README.md >/dev/null 2>&1
+                  status="正常✅"
               else
-                  echo "|$name|<span style="color:red">$protocol</span>|<span style="color:red">$address</span>|<span style="color:red">$port</span>|<span style="color:red">$region</span>|<span style="color:red">$ipv</span>|<span style="color:red">离线</span>❌|" | tee -a README.md >/dev/null 2>&1
+                  status="离线❌"
               fi
           else
-              echo "|$name|$protocol|$address|$port|$region|$ipv|协议无法检测⚠️|" | tee -a README.md >/dev/null 2>&1
+              status="未知⚠️"
+          fi
+
+          # 更新历史记录文件
+          [ ! -d "history/${base_filename}" ] && mkdir -p history/${base_filename}
+          history_file="history/${base_filename}/${protocol}-${address}-${port}.txt"
+          [ ! -f "$history_file" ] && touch "$history_file"
+          echo "$(date '+%Y年%m月%d日 %H:%M:%S')： $status" >> "$history_file"
+          tail -n 10 "$history_file" > "$history_file.temp" && mv "$history_file.temp" "$history_file"
+
+          # 生成历史状态显示
+          history_status=$(tail -n 10 "$history_file" | awk '{if($3=="正常✅") printf "🟩"; else if($3=="未知⚠️") printf "🟨"; else printf "🟥"}')
+          green_count=$(echo "$history_status" | grep -o "🟩" | wc -l)
+          total_count=$(echo "$history_status" | wc -m)
+          total_count=$((total_count - 1)) # 去除换行符
+          percentage=$((green_count * 100 / total_count))
+
+          if [[ "$status" = "正常✅" || "$status" = "未知⚠️" ]] ; then
+            echo "|$name|$protocol|$address|$port|$region|$ipv|$status|[${history_status}]($history_file) $percentage%|" |tee -a README.md >/dev/null 2>&1
+          else 
+            echo "|$name|<span style="color:red">$protocol</span>|<span style="color:red">$address</span>|<span style="color:red">$port</span>|<span style="color:red">$region</span>|<span style="color:red">$ipv</span>|<span style="color:red">离线</span>❌|[${history_status}]($history_file) <span style="color:red">$percentage%</span>|" | tee -a README.md >/dev/null 2>&1
           fi
           done
     echo -e "</details>\n" | tee -a README.md >/dev/null 2>&1
