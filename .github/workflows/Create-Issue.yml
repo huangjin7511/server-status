@@ -1,7 +1,7 @@
 name: 创建Issue服务离线通知
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       issue_title:
         description: "请输入发表 Issue 的标题"
