@@ -5,6 +5,7 @@ on:
     inputs:
       number:
         description: "请输入已存在的 Issue 序号（打开Issue链接，其中最后的数字就是序号）"
+        type: number
         required: true
         
 jobs:
@@ -15,7 +16,7 @@ jobs:
     - name: 获取Issue ID 
       id: get-sue-id
       uses: actions/github-script@v6
-        with:
+      with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const [repositoryOwner, repositoryName] = process.env.GITHUB_REPOSITORY.split('/');
@@ -60,6 +61,7 @@ jobs:
             }
 
             core.setOutput('issue-id', result.repository.issue.id);
+
         
     - name: 删除 Issue
       if: ${{ steps.get-issue-id.outputs.issue-id != '' }}
