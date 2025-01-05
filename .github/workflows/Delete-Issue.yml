@@ -1,0 +1,30 @@
+name: 删除 Issue
+
+on:
+  workflow_dispatch:
+    inputs:
+      number:
+        description: "请输入已存在的 Issue 序号"
+        type: number
+        required: true
+        
+jobs:
+  delete-issue:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 获取Issue ID 
+      id: get-sue-id
+      uses: monry/actions-get-issue-id@main
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        issue-repository: "${{ github.repository }}"
+        issue-number: ${{ github.event.inputs.number }}
+        
+    - name: 删除 Issue
+      uses: vtcaregorodtcev/delete-issue@main
+      with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          issue_node_id: ${{ steps.get-issue-id.outputs.issue_id }}
+
+          
