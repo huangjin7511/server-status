@@ -14,13 +14,14 @@ jobs:
     steps:
     - name: 获取Issue ID 
       id: get-sue-id
-      uses: monry/actions-get-issue-id@main
+      uses: monry/actions-get-issue-id@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        issue-repository: "${{ github.repository }}"
+        issue-repository: ${{ github.repository }}
         issue-number: ${{ github.event.inputs.number }}
         
     - name: 删除 Issue
+      if: ${{ steps.get-issue-id.outputs.issue-id != '' }}
       uses: vtcaregorodtcev/delete-issue@main
       with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
