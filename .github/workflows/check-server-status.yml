@@ -2,9 +2,9 @@ name: 服务状态检测
 
 on:
 # 当修改 main 分支的内容时自动执行该流程
-  push:
-    branches:
-       - main
+  #push:
+    #branches:
+       #- main
 #定时循环每2个小时
   schedule:
    - cron: "0 */2 * * *"
