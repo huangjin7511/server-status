@@ -24,7 +24,7 @@ jobs:
             const variables = {
               repositoryOwner: repositoryOwner,
               repositoryName: repositoryName,
-              issueNumber: ${{ github.event.inputs.issue-number }},
+              issueNumber: ${{ github.event.inputs.issue-number }}
             };
 
             const query = `
