@@ -5,7 +5,6 @@ on:
     inputs:
       number:
         description: "请输入已存在的 Issue 序号（打开Issue链接，其中最后的数字就是序号）"
-        type: number
         required: true
         
 jobs:
