@@ -5,6 +5,7 @@ on:
     inputs:
       number:
         description: "请输入已存在的 Issue 序号（打开Issue链接，其中最后的数字就是序号）"
+        type: number
         required: true
         
 jobs:
@@ -14,11 +15,52 @@ jobs:
     steps:
     - name: 获取Issue ID 
       id: get-sue-id
-      uses: monry/actions-get-issue-id@v1
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        issue-repository: ${{ github.repository }}
-        issue-number: ${{ github.event.inputs.number }}
+      uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const [repositoryOwner, repositoryName] = process.env.GITHUB_REPOSITORY.split('/');
+
+            const variables = {
+              repositoryOwner: repositoryOwner,
+              repositoryName: repositoryName,
+              issueNumber: ${{ github.event.inputs.issue-number }},
+            };
+
+            const query = `
+              query($repositoryOwner: String!, $repositoryName: String!, $issueNumber: Int!) {
+                repository(owner: $repositoryOwner, name: $repositoryName) {
+                  id
+                  issue(number: $issueNumber) {
+                    id
+                  }
+                }
+              }
+            `;
+
+            let result;
+
+            try {
+              result = await github.graphql(query, variables);
+            } catch (error) {
+              if (error.data) {
+                result = error.data;
+              } else {
+                throw new Error(`GraphQL query failed: ${error.message}`);
+              }
+            }
+
+            if (!result?.repository) {
+              core.setFailed('Repository not found.');
+              return;
+            }
+
+            if (!result.repository.issue) {
+              core.setFailed('Issue not found.');
+              return;
+            }
+
+            core.setOutput('issue-id', result.repository.issue.id);
         
     - name: 删除 Issue
       if: ${{ steps.get-issue-id.outputs.issue-id != '' }}
