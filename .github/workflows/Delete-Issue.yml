@@ -28,39 +28,41 @@ jobs:
             };
 
             const query = `
-              query($repositoryOwner: String!, $repositoryName: String!, $issueNumber: Int!) {
-                repository(owner: $repositoryOwner, name: $repositoryName) {
-                  id
-                  issue(number: $issueNumber) {
-                    id
-                  }
-                }
+            query($repositoryOwner: String!, $repositoryName: String!, $issueNumber: Int!) {
+              repository(owner: $repositoryOwner, name: $repositoryName) {
+              id
+                issue(number: $issueNumber) {
+              id
               }
+            }
+            }
             `;
 
-            let result;
+              let result;
 
             try {
-              result = await github.graphql(query, variables);
-            } catch (error) {
-              if (error.data) {
-                result = error.data;
-              } else {
+                    result = await github.graphql(query, variables);
+              } catch (error) {
+                if (error.data) {
+                  result = error.data;
+                  } else {
                 throw new Error(`GraphQL query failed: ${error.message}`);
+                }
               }
-            }
 
-            if (!result?.repository) {
-              core.setFailed('Repository not found.');
-              return;
-            }
+              // 检查返回的结果是否有效
+              if (!result?.repository) {
+                core.setFailed('Repository not found.');
+                return;
+                  }
+    
+                if (!result.repository.issue) {
+                core.setFailed('Issue not found.');
+                return;
+              }
 
-            if (!result.repository.issue) {
-              core.setFailed('Issue not found.');
-              return;
-            }
-
-            core.setOutput('issue-id', result.repository.issue.id);
+              // 返回结果输出
+              core.setOutput('issue-id', result.repository.issue.id);
 
         
     - name: 删除 Issue
