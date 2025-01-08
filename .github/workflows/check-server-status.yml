@@ -98,7 +98,7 @@ jobs:
           rm README.md && touch README.md
           
           echo "# 服务状态" | tee -a README.md
-          echo -e "**访问数**：![hello](https://views.whatilearened.today/views/github/${GITHUB_REPOSITORY}.svg)![](https://pgy.us.kg/?id=svg)![](http://s4.serv00.com:8828/?id=svg)![](https://pgy.us.kg/?id=ua)\n" | tee -a README.md >/dev/null 2>&1
+          echo -e "**访问数**：![hello](https://views.whatilearened.today/views/github/${GITHUB_REPOSITORY}.svg)![](https://pgy.us.kg/?id=svg)![](http://s4.serv00.com:8828/?id=svg)\n" | tee -a README.md >/dev/null 2>&1
           echo "> 这个[README](https://github.com/${GITHUB_REPOSITORY})每5小时由Github action生成一次." | tee -a README.md
           echo "## 上次更新时间：" | tee -a README.md
           date "+%Y年%m月%d日 %H:%M:%S" | tee -a README.md
@@ -183,7 +183,16 @@ jobs:
             create_issue "${name}" "${protocol}" "${address}" "${port}"
           fi
           done
-    
+      - name: Commit files
+        run: |
+          git config --local user.email "github-actions@github.com"
+          git config --local user.name "github-actions"
+          git add .
+          git commit -m "更新服务状态 ： $(date '+%Y-%m-%d %H:%M:%S')" -a
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          force_with_lease: true
       - name: 自用更新
         if: github.repository_owner == 'lmq8267' # 判断仓库所有者是否是 lmq8267 才执行
         env:
@@ -195,16 +204,6 @@ jobs:
           #远程ssh执行更新命令
           sudo apt-get install -y sshpass
           sshpass -p "${{ secrets.SSH_PRIVATE_KEY }}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${{ secrets.SERVER }}" "${{ secrets.CMD }}"
-      - name: Commit files
-        run: |
-          git config --local user.email "github-actions@github.com"
-          git config --local user.name "github-actions"
-          git add .
-          git commit -m "更新服务状态 ： $(date '+%Y-%m-%d %H:%M:%S')" -a
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          force_with_lease: true
 
   keepalive-workflow:
     name: keepalive
