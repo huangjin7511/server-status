@@ -11,6 +11,7 @@ rm README.md && touch README.md
 
 #写入标题目录
 echo -e "# 服务状态\n" | tee -a README.md >/dev/null 2>&1
+echo -e "![](https://pgy.us.kg/?id=svg)![](http://s4.serv00.com:8828/?id=svg)![](https://pgy.us.kg/?id=ua)\n" | tee -a README.md >/dev/null 2>&1
 # 查找当前目录下是否有 .txt 文件
 txt_files=$(ls *.txt 2>/dev/null)
 # 如果没有 .txt 文件，输出 "no" 并退出
