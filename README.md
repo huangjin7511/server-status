@@ -1,9 +1,9 @@
 # 服务状态
-**访问数**：![hello](https://views.whatilearened.today/views/github/lmq8267/server-status.svg)![](https://pgy.us.kg/?id=svg)![](http://s4.serv00.com:8828/?id=svg)![](https://pgy.us.kg/?id=ua)
+**访问数**：![hello](https://views.whatilearened.today/views/github/lmq8267/server-status.svg)![](https://pgy.us.kg/?id=svg)![](http://s4.serv00.com:8828/?id=svg)
 
 > 这个[README](https://github.com/lmq8267/server-status)每5小时由Github action生成一次.
 ## 上次更新时间：
-2025年01月08日 14:51:40
+2025年01月08日 14:53:59
 ## 公共节点状态： 
 公共节点仅用于测试，对于生产，请设置您自己的节点.
 
