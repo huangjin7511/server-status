@@ -98,7 +98,7 @@ jobs:
           rm README.md && touch README.md
           
           echo "# 服务状态" | tee -a README.md
-          echo -e "**访问数**：![hello](https://views.whatilearened.today/views/github/${GITHUB_REPOSITORY}.svg)![](https://pgy.us.kg/?id=svg)![](http://s4.serv00.com:8828/?id=svg)\n" | tee -a README.md >/dev/null 2>&1
+          echo -e "**访问数**：![hello](https://views.whatilearened.today/views/github/${GITHUB_REPOSITORY}.svg)![](https://pgy.us.kg/?id=svg)![](http://s4.serv00.com:8828/?id=svg)<p><img src="http://ip.cnqq.cloudns.ch/" width="400"></p>\n" | tee -a README.md >/dev/null 2>&1
           echo "> 这个[README](https://github.com/${GITHUB_REPOSITORY})每5小时由Github action生成一次." | tee -a README.md
           echo "## 上次更新时间：" | tee -a README.md
           date "+%Y年%m月%d日 %H:%M:%S" | tee -a README.md
