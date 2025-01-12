@@ -1,6 +1,7 @@
 #!/bin/bash
 
 export TZ="Asia/Shanghai"
+export LC_COLLATE=C
 #切换到当前脚本目录
 cd `dirname $0`
 
@@ -99,18 +100,34 @@ for filename in *.txt; do
           # 更新历史记录文件
           [ ! -d "history/${base_filename}" ] && mkdir -p history/${base_filename}
           history_file="history/${base_filename}/${protocol}-${address}-${port}.txt"
+	        history_f="/tmp/${protocol}-${address}-${port}.txt"
           [ ! -f "$history_file" ] && touch "$history_file"
           echo "$(date '+%Y年%m月%d日 %H:%M:%S')： $status" >> "$history_file"
-          tail -n 10 "$history_file" > "$history_file.temp" && mv "$history_file.temp" "$history_file"
+          # 获取文件行数
+	        line_count=$(wc -l < "$history_file")
+          if [ "$line_count" -gt 100 ]; then
+    	        # 如果文件行数大于 100，则只保留最近 100 行
+    		      tail -n 100 "$history_file" > "$history_file.temp" && mv "$history_file.temp" "$history_file"
+	        fi
+	        if [ "$line_count" -gt 10 ]; then
+    	        # 取最近 10 行计算
+    		      tail -n 10 "$history_file" > "$history_f"
+              # 生成历史状态显示
+              history_status=$(tail -n 10 "$history_f" | awk '{if($3=="正常✅") printf "🟩"; else if($3=="未知⚠️") printf "🟨"; else printf "🟥"}')
+          else
+              # 生成历史状态显示
+              history_status=$(tail -n "$line_count" "$history_file" | awk '{if($3=="正常✅") printf "🟩"; else if($3=="未知⚠️") printf "🟨"; else printf "🟥"}')
+	        fi
 
-          # 生成历史状态显示
-          history_status=$(tail -n 10 "$history_file" | awk '{if($3=="正常✅") printf "🟩"; else if($3=="未知⚠️") printf "🟨"; else printf "🟥"}')
           green_count=$(echo "$history_status" | grep -o "🟩" | wc -l)
           total_count=$(echo "$history_status" | wc -c)
-          total_count=$((total_count / 4))
+	        total_count=$((total_count / 4))
           percentage=$((green_count * 100 / total_count))
 
           if [[ "$status" = "正常✅" || "$status" = "未知⚠️" ]] ; then
+			if [[ "$protocol" = "http" || "$protocol" = "https" || "$protocol" = "HTTP" || "$protocol" = "HTTPS" ]] ; then
+				status="[$status](https://urlscan.io/liveshot/?width=1024&height=768&url=$URL)"
+		fi
             echo "|$name|$protocol|$address|$port|$region|$ipv|$status|[${history_status}]($history_file) $percentage%|" |tee -a README.md >/dev/null 2>&1
           else 
             echo "|$name|<span style="color:red">$protocol</span>|<span style="color:red">$address</span>|<span style="color:red">$port</span>|<span style="color:red">$region</span>|<span style="color:red">$ipv</span>|<span style="color:red">离线</span>❌|[${history_status}]($history_file) <span style="color:red">$percentage%</span>|" | tee -a README.md >/dev/null 2>&1
