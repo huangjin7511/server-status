@@ -10,5 +10,4 @@
 #[EasyTier](https://github.com/EasyTier/EasyTier) https easytier.cn/web  官方WEB服务器 
 
 短链接 http 1hc.us.kg CloudFlare
-短链接 http tt.cnqq.cloudns.ch CloudFlare
 
